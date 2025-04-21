@@ -59,13 +59,13 @@ func (m *Manager) ImportUser(user *gitlab.User, notify bool) error {
 	}
 
 	// Debug what endpoint we're calling and with what method
-	fmt.Printf("Attempting to create user via: POST /admin/users\n")
+	utils.PrintInfo("Attempting to create user via: POST /admin/users\n")
 
 	var result map[string]interface{}
 	err := m.giteaClient.Post("/admin/users", userReq, &result)
 	if err != nil {
 		// Try the alternative user creation endpoint if the first one failed
-		fmt.Printf("First attempt failed, trying alternative endpoint\n")
+		utils.PrintInfo("First attempt failed, trying alternative endpoint\n")
 		err = m.giteaClient.Post("/api/v1/admin/users", userReq, &result)
 		if err != nil {
 			return fmt.Errorf("failed to create user %s: %w", user.Username, err)

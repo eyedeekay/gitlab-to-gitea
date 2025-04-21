@@ -10,8 +10,11 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"regexp"
 	"strings"
 	"time"
+
+	"github.com/go-i2p/gitlab-to-gitea/utils"
 )
 
 // Client handles communication with the Gitea API
@@ -27,66 +30,26 @@ type VersionResponse struct {
 }
 
 // FetchCSRFToken retrieves a CSRF token from Gitea
-func (c *Client) FetchCSRFToken() error {
-	// Create a request to the Gitea login page to get a CSRF token
-	u, err := c.baseURL.Parse("/")
+// I don't think it works.
+func (c *Client) FetchCSRFToken() (string, error) {
+	resp, err := c.request("GET", "/user/login", nil, nil)
 	if err != nil {
-		return fmt.Errorf("invalid URL: %w", err)
-	}
-
-	// Use a normal HTTP client without our custom transport for this request
-	// to avoid circular dependency (we need the token for the transport)
-	httpClient := &http.Client{}
-
-	req, err := http.NewRequest("GET", u.String(), nil)
-	if err != nil {
-		return fmt.Errorf("failed to create request: %w", err)
-	}
-
-	resp, err := httpClient.Do(req)
-	if err != nil {
-		return fmt.Errorf("request failed: %w", err)
+		return "", fmt.Errorf("failed to fetch login page: %w", err)
 	}
 	defer resp.Body.Close()
 
-	// Extract CSRF token from Set-Cookie header
-	for _, cookie := range resp.Cookies() {
-		if cookie.Name == "_csrf" {
-			// Update the transport with the CSRF token
-			transport, ok := c.httpClient.Transport.(*CSRFTokenTransport)
-			if ok {
-				transport.CSRFToken = cookie.Value
-				return nil
-			}
-			return fmt.Errorf("transport is not a CSRFTokenTransport")
-		}
-	}
-
-	// If we couldn't find a CSRF token, try to extract it from the response body
-	bodyBytes, err := io.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return fmt.Errorf("failed to read response body: %w", err)
+		return "", fmt.Errorf("failed to read response body: %w", err)
 	}
 
-	// Look for <meta name="_csrf" content="..." /> in the HTML
-	body := string(bodyBytes)
-	csrfMetaStart := strings.Index(body, `<meta name="_csrf" content="`)
-	if csrfMetaStart != -1 {
-		csrfMetaStart += len(`<meta name="_csrf" content="`)
-		csrfMetaEnd := strings.Index(body[csrfMetaStart:], `"`)
-		if csrfMetaEnd != -1 {
-			csrfToken := body[csrfMetaStart : csrfMetaStart+csrfMetaEnd]
-
-			transport, ok := c.httpClient.Transport.(*CSRFTokenTransport)
-			if ok {
-				transport.CSRFToken = csrfToken
-				return nil
-			}
-			return fmt.Errorf("transport is not a CSRFTokenTransport")
-		}
+	// Use a single approach targeting Gitea's current HTML structure
+	metaTagRegex := regexp.MustCompile(`<meta name="_csrf" content="([^"]+)"`)
+	if matches := metaTagRegex.FindSubmatch(body); len(matches) > 1 {
+		return string(matches[1]), nil
 	}
 
-	return fmt.Errorf("could not find CSRF token in response")
+	return "", fmt.Errorf("could not find CSRF token in login page")
 }
 
 func NewClient(baseURL, token string) (*Client, error) {
@@ -178,7 +141,7 @@ func (c *Client) request(method, path string, data, result interface{}) (*http.R
 	}
 
 	// Debug output to see what endpoint is being called
-	fmt.Printf("Making %s request to: %s%s\n", method, c.baseURL.String(), path)
+	utils.PrintInfo(fmt.Sprintf("Making %s request to: %s%s\n", method, c.baseURL.String(), path))
 
 	u, err := c.baseURL.Parse(path)
 	if err != nil {
