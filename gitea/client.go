@@ -39,7 +39,7 @@ type SearchResponse struct {
 // SearchRepositories searches for repositories and returns the results
 func (c *Client) SearchRepositories() ([]map[string]interface{}, error) {
 	var response SearchResponse
-	err := c.Get("/repos/search?limit=1000", &response)
+	err := c.Get("repos/search?limit=1000", &response)
 	if err != nil {
 		return nil, err
 	}
@@ -70,24 +70,20 @@ func (c *Client) FetchCSRFToken() (string, error) {
 }
 
 func NewClient(baseURL, token string) (*Client, error) {
-	if !strings.HasSuffix(baseURL, "/") {
-		baseURL += "/"
-	}
+	// Remove trailing slash from baseURL if present
+	baseURL = strings.TrimSuffix(baseURL, "/")
 
 	u, err := url.Parse(baseURL)
 	if err != nil {
 		return nil, fmt.Errorf("invalid URL: %w", err)
 	}
 
-	// Create a standard HTTP client without the custom transport
-	httpClient := &http.Client{
-		Timeout: 30 * time.Second,
-	}
-
 	return &Client{
-		baseURL:    u,
-		httpClient: httpClient,
-		token:      token,
+		baseURL: u,
+		httpClient: &http.Client{
+			Timeout: 360 * time.Second,
+		},
+		token: token,
 	}, nil
 }
 
@@ -153,17 +149,19 @@ func (c *Client) Delete(path string) error {
 
 // request sends an HTTP request to the Gitea API
 func (c *Client) request(method, path string, data, result interface{}) (*http.Response, error) {
-	if !strings.HasPrefix(path, "/") {
-		path = "/api/v1/" + path
+	// Normalize path - remove leading slash if present
+	path = strings.TrimPrefix(path, "/")
+
+	// Add API prefix if not already present
+	if !strings.HasPrefix(path, "api/v1/") {
+		path = "api/v1/" + path
 	}
+
+	// Construct the full URL without double slashes
+	fullURL := fmt.Sprintf("%s/%s", strings.TrimSuffix(c.baseURL.String(), "/"), path)
 
 	// Debug output to see what endpoint is being called
-	utils.PrintInfo(fmt.Sprintf("Making %s request to: %s%s\n", method, c.baseURL.String(), path))
-
-	u, err := c.baseURL.Parse(path)
-	if err != nil {
-		return nil, fmt.Errorf("invalid path: %w", err)
-	}
+	utils.PrintInfo(fmt.Sprintf("Making %s request to: %s", method, fullURL))
 
 	var body io.Reader
 	if data != nil {
@@ -172,17 +170,14 @@ func (c *Client) request(method, path string, data, result interface{}) (*http.R
 			return nil, fmt.Errorf("failed to marshal request body: %w", err)
 		}
 		body = bytes.NewBuffer(jsonData)
-
-		// Debug output for request body
-		// fmt.Printf("Request body: %s\n", string(jsonData))
 	}
 
-	req, err := http.NewRequest(method, u.String(), body)
+	req, err := http.NewRequest(method, fullURL, body)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
 
-	// Set headers - simplified approach with just basic auth headers
+	// Set headers
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Accept", "application/json")
 	req.Header.Set("Authorization", fmt.Sprintf("token %s", c.token))
@@ -193,12 +188,11 @@ func (c *Client) request(method, path string, data, result interface{}) (*http.R
 	}
 	defer resp.Body.Close()
 
-	// For debugging: print the raw response
-	bodyBytes, _ := io.ReadAll(resp.Body)
-	//fmt.Printf("Response: Status=%s, Body=%s\n", resp.Status, string(bodyBytes))
-
-	// Since we've read the body, we need to create a new reader for further processing
-	//resp.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
+	// Read the body
+	bodyBytes, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read response body: %w", err)
+	}
 
 	// Handle error status codes
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {

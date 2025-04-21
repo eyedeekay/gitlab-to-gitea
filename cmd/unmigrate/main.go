@@ -44,7 +44,7 @@ func main() {
 
 	// Get current user (admin)
 	var currentUser map[string]interface{}
-	err = giteaClient.Get("/user", &currentUser)
+	err = giteaClient.Get("/api/v1/user", &currentUser)
 	if err != nil {
 		utils.PrintError(fmt.Sprintf("Failed to get current user: %v", err))
 		os.Exit(1)
@@ -176,14 +176,13 @@ func (u *Unmigrator) deleteAllOrganizations() error {
 	return nil
 }
 
-// deleteAllNonAdminUsers deletes all users except the admin in Gitea
 // deleteAllNonAdminUsers deletes all users except admins and the current user
 func (u *Unmigrator) deleteAllNonAdminUsers() error {
 	utils.PrintHeader("Deleting users...")
 
 	// Get all users
 	var users []map[string]interface{}
-	err := u.client.Get("/admin/users?limit=1000", &users)
+	err := u.client.Get("admin/users?limit=1000", &users)
 	if err != nil {
 		return fmt.Errorf("failed to get users: %w", err)
 	}
@@ -212,6 +211,9 @@ func (u *Unmigrator) deleteAllNonAdminUsers() error {
 	utils.PrintInfo(fmt.Sprintf("Found %d users to delete", deleteCount))
 
 	// Delete each non-admin, non-current user
+	deletedCount := 0
+	failedCount := 0
+
 	for _, user := range users {
 		username, ok := user["login"].(string)
 		if !ok {
@@ -239,21 +241,31 @@ func (u *Unmigrator) deleteAllNonAdminUsers() error {
 			continue
 		}
 
-		userID, ok := user["id"].(float64)
-		if !ok {
-			utils.PrintWarning(fmt.Sprintf("Could not get user ID for %s, skipping", username))
-			continue
+		// Try deleting by username instead of ID
+		utils.PrintInfo(fmt.Sprintf("Deleting user: %s", username))
+		err := u.client.Delete(fmt.Sprintf("admin/users/%s", username))
+		if err != nil {
+			// If that fails, try with the ID as fallback
+			userID, ok := user["id"].(float64)
+			if ok {
+				utils.PrintInfo(fmt.Sprintf("Retrying deletion with ID: %d", int(userID)))
+				err = u.client.Delete(fmt.Sprintf("admin/users/%d", int(userID)))
+				if err != nil {
+					utils.PrintWarning(fmt.Sprintf("Failed to delete user %s: %v", username, err))
+					failedCount++
+					continue
+				}
+			} else {
+				utils.PrintWarning(fmt.Sprintf("Failed to delete user %s and could not get ID", username))
+				failedCount++
+				continue
+			}
 		}
 
-		utils.PrintInfo(fmt.Sprintf("Deleting user: %s (ID: %d)", username, int(userID)))
-		err := u.client.Delete(fmt.Sprintf("/admin/users/%d", int(userID)))
-		if err != nil {
-			utils.PrintWarning(fmt.Sprintf("Failed to delete user %s: %v", username, err))
-		} else {
-			utils.PrintSuccess(fmt.Sprintf("User %s deleted", username))
-		}
+		utils.PrintSuccess(fmt.Sprintf("User %s deleted", username))
+		deletedCount++
 	}
 
-	utils.PrintSuccess("User deletion complete")
+	utils.PrintSuccess(fmt.Sprintf("User deletion complete. Deleted: %d, Failed: %d", deletedCount, failedCount))
 	return nil
 }

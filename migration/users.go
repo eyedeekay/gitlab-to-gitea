@@ -74,16 +74,21 @@ func (m *Manager) ImportUser(user *gitlab.User, notify bool) error {
 
 	utils.PrintInfo(fmt.Sprintf("User %s created as %s, temporary password: %s", user.Username, cleanUsername, tmpPassword))
 
+	utils.PrintHeader("Importing SSH keys...")
 	// Import user's SSH keys
 	keys, err := m.gitlabClient.GetUserKeys(user.ID)
 	if err != nil {
 		utils.PrintWarning(fmt.Sprintf("Failed to fetch keys for user %s: %v", user.Username, err))
 	} else {
+		utils.PrintInfo(fmt.Sprintf("Found %d keys for user %s", len(keys), user.Username))
 		for _, key := range keys {
+			utils.PrintInfo(fmt.Sprintf("Importing key %s for user %s", key.Title, cleanUsername))
 			if err := m.importUserKey(cleanUsername, key); err != nil {
 				utils.PrintWarning(fmt.Sprintf("Failed to import key for user %s: %v", user.Username, err))
 			}
+			utils.PrintInfo(fmt.Sprintf("Key %s imported for user %s", key.Title, cleanUsername))
 		}
+		utils.PrintSuccess(fmt.Sprintf("Imported %d keys for user %s", len(keys), cleanUsername))
 	}
 
 	return nil

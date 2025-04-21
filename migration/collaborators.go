@@ -23,18 +23,31 @@ func (m *Manager) importProjectCollaborators(
 ) error {
 	ownerInfo, err := m.getOwner(project)
 	if err != nil {
-		return fmt.Errorf("failed to get owner info: %w", err)
+		utils.PrintWarning(fmt.Sprintf("Failed to get owner info for %s: %v, skipping collaborators", project.Name, err))
+		return nil // Return nil instead of error to continue with migration
 	}
 
-	ownerUsername := ownerInfo["username"].(string)
-	ownerType := ownerInfo["type"].(string)
+	// Safely extract username and type with defaults if missing
+	ownerUsername, ok := ownerInfo["username"].(string)
+	if !ok || ownerUsername == "" {
+		utils.PrintWarning(fmt.Sprintf("Owner username missing for %s, skipping collaborators", project.Name))
+		return nil
+	}
+
+	// Safely extract owner type with default
+	ownerType, _ := ownerInfo["type"].(string)
+	if ownerType == "" {
+		ownerType = "user" // Default to user type
+	}
+
 	repoName := utils.CleanName(project.Name)
 
 	for _, collaborator := range collaborators {
 		cleanUsername := utils.NormalizeUsername(collaborator.Username)
 
 		// Skip if the collaborator is the owner
-		if ownerType == "user" && ownerUsername == cleanUsername {
+		if cleanUsername == "" {
+			utils.PrintWarning("Empty username for collaborator, skipping")
 			continue
 		}
 

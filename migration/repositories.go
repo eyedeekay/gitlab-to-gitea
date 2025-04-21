@@ -131,18 +131,36 @@ func (m *Manager) getOwner(project *gitlab.Project) (map[string]interface{}, err
 	// Try to get as a user first
 	var result map[string]interface{}
 	err := m.giteaClient.Get("/users/"+namespacePath, &result)
-	if err == nil {
-		return result, nil
+	if err == nil && result != nil {
+		// Verify required fields exist
+		if username, ok := result["username"].(string); ok && username != "" {
+			return result, nil
+		}
 	}
 
 	// Try to get as an organization
 	orgName := utils.CleanName(project.Namespace.Name)
 	err = m.giteaClient.Get("/orgs/"+orgName, &result)
-	if err == nil {
+	if err == nil && result != nil {
+		// Verify required fields exist
+		if username, ok := result["username"].(string); ok && username != "" {
+			return result, nil
+		}
+	}
+
+	// Create a placeholder user instead of failing
+	utils.PrintWarning(fmt.Sprintf("Could not find owner for project %s, creating placeholder user", project.Name))
+	if err := m.ImportPlaceholderUser(namespacePath); err != nil {
+		return nil, fmt.Errorf("failed to create placeholder user: %w", err)
+	}
+
+	// Try to get the newly created user
+	err = m.giteaClient.Get("/users/"+namespacePath, &result)
+	if err == nil && result != nil {
 		return result, nil
 	}
 
-	return nil, fmt.Errorf("failed to find owner for project: %w", err)
+	return nil, fmt.Errorf("failed to find or create owner for project: %s", project.Path)
 }
 
 // repoExists checks if a repository exists in Gitea

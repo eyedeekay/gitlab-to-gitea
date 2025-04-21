@@ -75,6 +75,7 @@ func (s *State) Save() error {
 // Reset clears the migration state
 func (s *State) Reset() error {
 	s.mutex.Lock()
+	defer s.mutex.Unlock()
 	utils.PrintInfo("Clearing migration state...")
 
 	s.Users = []string{}
@@ -105,7 +106,16 @@ func (s *State) MarkUserImported(username string) {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 
-	if !s.HasImportedUser(username) {
+	// Check directly without calling HasImportedUser
+	alreadyImported := false
+	for _, u := range s.Users {
+		if u == username {
+			alreadyImported = true
+			break
+		}
+	}
+
+	if !alreadyImported {
 		s.Users = append(s.Users, username)
 	}
 }
@@ -128,7 +138,16 @@ func (s *State) MarkGroupImported(group string) {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 
-	if !s.HasImportedGroup(group) {
+	// Check directly without calling HasImportedGroup
+	alreadyImported := false
+	for _, g := range s.Groups {
+		if g == group {
+			alreadyImported = true
+			break
+		}
+	}
+
+	if !alreadyImported {
 		s.Groups = append(s.Groups, group)
 	}
 }
@@ -146,12 +165,20 @@ func (s *State) HasImportedProject(project string) bool {
 	return false
 }
 
-// MarkProjectImported marks a project as imported
 func (s *State) MarkProjectImported(project string) {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 
-	if !s.HasImportedProject(project) {
+	// Check directly without calling HasImportedProject
+	alreadyImported := false
+	for _, p := range s.Projects {
+		if p == project {
+			alreadyImported = true
+			break
+		}
+	}
+
+	if !alreadyImported {
 		s.Projects = append(s.Projects, project)
 	}
 }
@@ -183,7 +210,19 @@ func (s *State) MarkCommentImported(issueKey, commentID string) {
 		s.ImportedComments[issueKey] = []string{}
 	}
 
-	if !s.HasImportedComment(issueKey, commentID) {
+	// Check directly without calling HasImportedComment
+	alreadyImported := false
+	comments, exists := s.ImportedComments[issueKey]
+	if exists {
+		for _, id := range comments {
+			if id == commentID {
+				alreadyImported = true
+				break
+			}
+		}
+	}
+
+	if !alreadyImported {
 		s.ImportedComments[issueKey] = append(s.ImportedComments[issueKey], commentID)
 	}
 }
