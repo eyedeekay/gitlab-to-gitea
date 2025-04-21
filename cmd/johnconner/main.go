@@ -1,9 +1,10 @@
 // This is different, and worse, than everything else in this repo.
 // It is a script to delete users and groups from a GitLab instance.
 // It still contains I2P-specific behavior.
-// It does not use the official gitlab API.
+// It does not use the official gitlab API client for go, it uses a custom one which might be janky.
+// I probably won't fix it.
 
-// I SERIOUSLY DON'T THINK THIS IS A GOOD IDEA.
+// I SERIOUSLY DON'T THINK THIS IS A GOOD IDEA FOR YOU TO USE.
 
 package main
 
