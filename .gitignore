@@ -27,5 +27,6 @@ go.work.sum
 /unmigrate
 /forkfix
 /migration_state.json
+/bin
 log.log
 err.log
