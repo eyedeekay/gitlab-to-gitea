@@ -25,6 +25,7 @@ go.work.sum
 .env
 /migrate
 /unmigrate
+/forkfix
 /migration_state.json
 log.log
 err.log

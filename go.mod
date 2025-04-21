@@ -5,6 +5,7 @@ go 1.24.2
 require (
 	github.com/go-sql-driver/mysql v1.9.2
 	github.com/joho/godotenv v1.5.1
+	github.com/mattn/go-sqlite3 v1.14.28
 	github.com/xanzy/go-gitlab v0.115.0
 )
 
