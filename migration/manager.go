@@ -250,7 +250,7 @@ func (m *Manager) collectRequiredUsers(projects []*gogitlab.Project) map[string]
 			}
 
 			// Extract mentioned users from issue description
-			for _, mention := range utils.ExtractUserMentions(issue.Description) {
+			/*for _, mention := range utils.ExtractUserMentions(issue.Description) {
 				addUser(mention)
 			}
 
@@ -261,7 +261,7 @@ func (m *Manager) collectRequiredUsers(projects []*gogitlab.Project) map[string]
 						addUser(mention)
 					}
 				}
-			}
+			}*/
 		}
 
 		// Collect milestone authors

@@ -2,6 +2,8 @@
 
 Go-based tool for migrating GitLab repositories, users, groups, issues and related data to Gitea instances.
 
+More-or-less a port of [gitlab-to-gitea](https://git.autonomic.zone/kawaiipunk/gitlab-to-gitea) from python to Go because *fixing* python appears to be a thing I just can't get my mind around, but *rewriting* it? I'm actually OK at that.
+
 ## Core Functionality
 
 - Migrates users, groups, and their relationships from GitLab to Gitea
