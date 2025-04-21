@@ -264,18 +264,7 @@ func (m *Manager) collectRequiredUsers(projects []*gogitlab.Project) map[string]
 			}*/
 		}
 
-		// Collect milestone authors
-		milestones, err := m.gitlabClient.GetProjectMilestones(project.ID)
-		if err != nil {
-			utils.PrintWarning(fmt.Sprintf("Error collecting milestones for %s: %v", project.Name, err))
-			continue
-		}
-
-		for _, milestone := range milestones {
-			if milestone.Title != "" {
-				addUser(milestone.Title)
-			}
-		}
+		// Milestones don't have authors
 	}
 
 	utils.PrintInfo(fmt.Sprintf("Collected a total of %d unique required users", len(required)))
