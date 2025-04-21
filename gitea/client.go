@@ -29,6 +29,23 @@ type VersionResponse struct {
 	Version string `json:"version"`
 }
 
+// SearchResponse represents the structure of Gitea search responses
+type SearchResponse struct {
+	Data  []map[string]interface{} `json:"data"`
+	OK    bool                     `json:"ok"`
+	Total int                      `json:"total_count"`
+}
+
+// SearchRepositories searches for repositories and returns the results
+func (c *Client) SearchRepositories() ([]map[string]interface{}, error) {
+	var response SearchResponse
+	err := c.Get("/repos/search?limit=1000", &response)
+	if err != nil {
+		return nil, err
+	}
+	return response.Data, nil
+}
+
 // FetchCSRFToken retrieves a CSRF token from Gitea
 // I don't think it works.
 func (c *Client) FetchCSRFToken() (string, error) {
