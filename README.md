@@ -4,7 +4,7 @@ Go-based tool for migrating GitLab repositories, users, groups, issues and relat
 
 More-or-less a port of [gitlab-to-gitea](https://git.autonomic.zone/kawaiipunk/gitlab-to-gitea) from python to Go because *fixing* python appears to be a thing I just can't get my mind around, but *rewriting* it? I'm actually OK at that.
 
-Also includes: `cmd/forkfix`, for fixing fork relationships between migrated repositories by manipulating the gitea mysql database and `cmd/unmigrate` to delete everything from a gitea instance except for the admin users.
+Also includes: `cmd/forkfix`, for fixing fork relationships between migrated repositories by manipulating the gitea mysql database, `cmd/unmigrate` to delete everything from a gitea instance except for the admin users, and `cmd/johnconnor` which is a super-dangerous script for eliminating spam accounts from gitlab instances.
 
 ## Core Functionality
 
@@ -18,7 +18,7 @@ Also includes: `cmd/forkfix`, for fixing fork relationships between migrated rep
 
 - Modular package structure instead of monolithic script
 - Configuration via environment variables rather than hardcoded values
-- Added utility tools (`forkfix` and `unmigrate`) 
+- Added utility tools (`forkfix`, `unmigrate`, `johnconnor`) 
 - Database connectivity for commit action imports
 - Improved error handling with recovery mechanisms
 - Separation of API client code from migration logic
