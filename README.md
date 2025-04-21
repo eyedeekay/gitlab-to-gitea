@@ -73,6 +73,7 @@ The tool will:
 - github.com/xanzy/go-gitlab: GitLab API client
 - github.com/joho/godotenv: Environment variable handling
 - github.com/go-sql-driver/mysql: Optional database connectivity for action import
+- github.com/mattn/go-sqlite3: forkfix sqlite handling
 
 ## Optional Features
 
