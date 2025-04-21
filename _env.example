@@ -1,0 +1,26 @@
+# .env
+
+# GitLab Configuration
+GITLAB_URL=https://gitlab.example.com
+GITLAB_TOKEN=glpat-XXXXXXXXXXXXXXXXXXXX
+GITLAB_ADMIN_USER=admin
+GITLAB_ADMIN_PASS=your_secure_password
+
+# Gitea Configuration
+GITEA_URL=https://gitea.example.com
+GITEA_TOKEN=XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+
+# Migration Options
+MIGRATION_STATE_FILE=migration_state.json
+RESUME_MIGRATION=true
+
+# Database connection for action import (optional, only needed for gitea_import_actions.py conversion)
+DB_HOST=localhost
+DB_USER=gitea
+DB_PASS=password
+DB_NAME=gitea
+
+# User/Repository IDs for commit import (optional, only needed for gitea_import_actions.py conversion)
+USERID=1
+REPOID=1
+BRANCH=master
