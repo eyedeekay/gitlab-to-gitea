@@ -24,24 +24,32 @@ type repositoryMigrateRequest struct {
 }
 
 // ImportProject imports a GitLab project to Gitea
+// ImportProject imports a GitLab project to Gitea
 func (m *Manager) ImportProject(project *gitlab.Project) error {
 	cleanName := utils.CleanName(project.Name)
 
 	utils.PrintInfo(fmt.Sprintf("Importing project %s from owner %s", cleanName, project.Namespace.Name))
 
+	// Get the owner information first, so we use the correct name format
+	ownerInfo, err := m.getOwner(project)
+	if err != nil {
+		return fmt.Errorf("failed to get project owner: %w", err)
+	}
+
+	// Get the correct owner username from the result
+	owner, ok := ownerInfo["username"].(string)
+	if !ok || owner == "" {
+		return fmt.Errorf("failed to get valid username for project owner")
+	}
+
+	utils.PrintInfo(fmt.Sprintf("Using owner %s for project %s", owner, cleanName))
+
 	// Check if repository already exists
-	owner := utils.NormalizeUsername(project.Namespace.Path)
 	if exists, err := m.repoExists(owner, cleanName); err != nil {
 		return fmt.Errorf("failed to check if repository exists: %w", err)
 	} else if exists {
 		utils.PrintWarning(fmt.Sprintf("Project %s already exists in Gitea, skipping repository creation!", cleanName))
 	} else {
-		// Get the owner information
-		owner, err := m.getOwner(project)
-		if err != nil {
-			return fmt.Errorf("failed to get project owner: %w", err)
-		}
-
 		// Prepare clone URL
 		cloneURL := project.HTTPURLToRepo
 		if m.config.GitLabAdminUser == "" && m.config.GitLabAdminPass == "" {
@@ -60,7 +68,7 @@ func (m *Manager) ImportProject(project *gitlab.Project) error {
 			Mirror:       false,
 			Private:      private,
 			RepoName:     cleanName,
-			UID:          int(owner["id"].(float64)),
+			UID:          int(ownerInfo["id"].(float64)),
 		}
 
 		// Call Gitea API to migrate repository
