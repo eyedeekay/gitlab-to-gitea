@@ -3,11 +3,24 @@ fmt:
 	@echo "Running gofumpt..."
 	find . -name '*.go' -exec gofumpt -w -s -extra {} \;
 
-migrate:
-	go build -o migrate ./cmd/migrate
+CGO_ENABLED=0
 
-unmigrate:
-	go build -o unmigrate ./cmd/unmigrate
+all:	bin migrate unmigrate forkfix orgfix
 
-forkfix:
-	go build -o forkfix ./cmd/forkfix
+bin:
+	mkdir -p ./bin
+
+migrate: bin
+	go build --tags=netgo,osusergo -o ./bin/migrate ./cmd/migrate
+
+unmigrate: bin
+	go build --tags=netgo,osusergo -o ./bin/unmigrate ./cmd/unmigrate
+
+forkfix: bin
+	go build --tags=netgo,osusergo -o ./bin/forkfix ./cmd/forkfix
+
+orgfix: bin
+	go build --tags=netgo,osusergo -o ./bin/orgfix ./cmd/orgfix
+
+clean:
+	rm -f ./bin/migrate ./bin/unmigrate ./bin/forkfix ./bin/orgfix

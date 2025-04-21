@@ -29,8 +29,7 @@ func ExtractUserMentions(text string) []string {
 	}
 
 	// Ignore everything we found and return nothing
-	return []string{}
-	//return result
+	return []string{""}
 }
 
 // NormalizeMentions replaces all @mentions in text with their normalized versions
