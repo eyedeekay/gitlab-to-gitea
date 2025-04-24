@@ -22,5 +22,11 @@ forkfix: bin
 orgfix: bin
 	go build --tags=netgo,osusergo -o ./bin/orgfix ./cmd/orgfix
 
+mirror: bin
+	go build --tags=netgo,osusergo -o ./bin/mirror ./cmd/mirror
+
+namefix: bin
+	go build --tags=netgo,osusergo -o ./bin/namefix ./cmd/namefix
+
 clean:
 	rm -f ./bin/migrate ./bin/unmigrate ./bin/forkfix ./bin/orgfix

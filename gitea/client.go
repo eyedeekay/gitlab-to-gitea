@@ -13,8 +13,6 @@ import (
 	"regexp"
 	"strings"
 	"time"
-
-	"github.com/go-i2p/gitlab-to-gitea/utils"
 )
 
 // Client handles communication with the Gitea API
@@ -161,7 +159,7 @@ func (c *Client) request(method, path string, data, result interface{}) (*http.R
 	fullURL := fmt.Sprintf("%s/%s", strings.TrimSuffix(c.baseURL.String(), "/"), path)
 
 	// Debug output to see what endpoint is being called
-	utils.PrintInfo(fmt.Sprintf("Making %s request to: %s", method, fullURL))
+	// utils.PrintInfo(fmt.Sprintf("Making %s request to: %s", method, fullURL))
 
 	var body io.Reader
 	if data != nil {
@@ -206,4 +204,9 @@ func (c *Client) request(method, path string, data, result interface{}) (*http.R
 	}
 
 	return resp, nil
+}
+
+// GetToken returns the authentication token
+func (c *Client) GetToken() string {
+	return c.token
 }
