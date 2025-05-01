@@ -3,48 +3,16 @@ package gitea
 import (
 	"net"
 	"net/http"
-	"net/url"
-	"strings"
 	"time"
 
-	"github.com/go-i2p/gitlab-to-gitea/utils"
-	"github.com/go-i2p/onramp"
-)
-
-var (
-	Garlic, GarlicErr = onramp.NewGarlic("git-looseleaf", "127.0.0.1:7656", onramp.OPT_WIDE)
-	Onion, OnionErr   = onramp.NewOnion("git-looseleaf")
+	metadialer "github.com/go-i2p/go-meta-dialer"
 )
 
 func Dial(network, addr string) (net.Conn, error) {
-	// convert the addr to a URL
-	url, err := url.Parse(addr)
-	if err != nil {
-		return nil, err
+	if metadialer.ANON {
+		metadialer.ANON = false
 	}
-	// get the domain name
-	domain := url.Hostname()
-	// get the top-level domain
-	fr := strings.Split(domain, ".")
-	tld := fr[len(fr)-1]
-	utils.PrintInfo("Dialing " + tld + " " + addr)
-	switch tld {
-	case "i2p":
-		if GarlicErr != nil {
-			return nil, GarlicErr
-		}
-		// I2P is a special case, we need to use the garlic dialer
-		return Garlic.Dial("i2p", addr)
-	case "onion":
-		if OnionErr != nil {
-			return nil, OnionErr
-		}
-		// Onion is a special case, we need to use the onion dialer
-		return Onion.Dial("onion", addr)
-	default:
-		// For everything else, we can use the default dialer
-		return net.Dial(network, addr)
-	}
+	return metadialer.Dial(network, addr)
 }
 
 func init() {
