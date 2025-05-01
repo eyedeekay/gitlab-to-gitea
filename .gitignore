@@ -30,3 +30,6 @@ go.work.sum
 /bin
 log.log
 err.log
+i2pkeys
+onionkeys
+tlskeys

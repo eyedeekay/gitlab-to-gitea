@@ -3,6 +3,7 @@ module github.com/go-i2p/gitlab-to-gitea
 go 1.24.2
 
 require (
+	github.com/go-i2p/go-meta-dialer v0.0.0-20250501024057-715e91be3cfe
 	github.com/go-i2p/onramp v0.33.92
 	github.com/go-sql-driver/mysql v1.9.2
 	github.com/google/go-github/v57 v57.0.0
