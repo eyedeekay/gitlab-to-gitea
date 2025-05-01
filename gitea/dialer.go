@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/go-i2p/gitlab-to-gitea/utils"
 	"github.com/go-i2p/onramp"
 )
 
@@ -26,6 +27,7 @@ func Dial(network, addr string) (net.Conn, error) {
 	// get the top-level domain
 	fr := strings.Split(domain, ".")
 	tld := fr[len(fr)-1]
+	utils.PrintInfo("Dialing " + tld + " " + addr)
 	switch tld {
 	case "i2p":
 		if GarlicErr != nil {

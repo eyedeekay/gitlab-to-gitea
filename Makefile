@@ -5,7 +5,7 @@ fmt:
 
 CGO_ENABLED=0
 
-all:	bin migrate unmigrate forkfix orgfix
+all:	bin migrate unmigrate forkfix orgfix namefix
 
 bin:
 	mkdir -p ./bin

@@ -80,6 +80,9 @@ func NewClient(baseURL, token string) (*Client, error) {
 		baseURL: u,
 		httpClient: &http.Client{
 			Timeout: 360 * time.Second,
+			Transport: &http.Transport{
+				Dial: Dial,
+			},
 		},
 		token: token,
 	}, nil
