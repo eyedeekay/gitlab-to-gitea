@@ -1,9 +1,9 @@
 module github.com/go-i2p/gitlab-to-gitea
 
-go 1.26.0
+go 1.26.3
 
 require (
-	github.com/go-i2p/go-meta-dialer v0.0.0-20260908192953-8d10878df285
+	github.com/go-i2p/go-meta-dialer v0.0.0-20260908204802-0247a7c120e5
 	github.com/go-sql-driver/mysql v1.10.1
 	github.com/google/go-github/v57 v57.0.0
 	github.com/joho/godotenv v1.5.1
@@ -22,9 +22,10 @@ require (
 	github.com/google/go-querystring v1.2.0 // indirect
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
 	github.com/hashicorp/go-retryablehttp v0.7.8 // indirect
+	github.com/mattn/go-isatty v0.0.24 // indirect
 	github.com/sirupsen/logrus v1.10.2 // indirect
 	golang.org/x/crypto v0.57.0 // indirect
-	golang.org/x/net v0.58.0 // indirect
+	golang.org/x/net v0.59.0 // indirect
 	golang.org/x/sys v0.48.0 // indirect
 	golang.org/x/time v0.16.0 // indirect
 )
